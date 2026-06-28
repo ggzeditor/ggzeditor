@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>GGZ EDITOR — Cinematic Editing Universe</title>
+    <!-- Font Awesome for brand icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none;
+        }
+
+        :root {
+            --bg-primary: #0A0A1A;
+            --glass-bg: rgba(10, 10, 26, 0.7);
+            --glass-border: rgba(0, 255, 255, 0.25);
+            --accent: #00FFFF;
+            --text-primary: #F0F0FF;
+            --text-secondary: #A0A0C0;
+            --card-bg: rgba(20, 20, 45, 0.6);
+            --transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+
+        body.light {
+            --bg-primary: #F5F5F7;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(0, 0, 0, 0.15);
+            --accent: #2D2D2D;
+            --text-primary: #1A1A2E;
+            --text-secondary: #3A3A5A;
+            --card-bg: rgba(230, 230, 245, 0.6);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0A0A1A;
+            overflow-x: hidden;
+            color: var(--text-primary);
+            transition: background 0.3s;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            display: block;
+        }
+
+        .ui-overlay {
+            position: relative;
+            z-index: 10;
+            background: linear-gradient(to bottom, rgba(10, 10, 26, 0.4), rgba(10, 10, 26, 0.2));
+        }
+
+        /* Navigation Bar */
+        .nav-bar {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            padding: 0.6rem 2rem;
+            border-radius: 60px;
+            border: 1px solid var(--glass-border);
+            z-index: 30;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .nav-btn {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+        }
+        .nav-btn i { width: 18px; height: 18px; }
+        .nav-btn:hover, .nav-btn.active {
+            background: var(--accent);
+            color: #0A0A1A;
+            box-shadow: 0 0 12px rgba(0,255,255,0.4);
+        }
+        .selector {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 40px;
+            padding: 0.4rem 1rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            top: 45px;
+            left: 0;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            min-width: 120px;
+            z-index: 31;
+            padding: 0.5rem 0;
+        }
+        .dropdown-content a {
+            display: block;
+            padding: 0.5rem 1rem;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 0.8rem;
+            transition: 0.2s;
+        }
+        .dropdown-content a:hover {
+            background: var(--accent);
+            color: #0A0A1A;
+        }
+        .dropdown.show .dropdown-content {
+            display: block;
+        }
+
+        /* Sections */
+        .section {
+            padding: 120px 5% 100px;
+            max-width: 1400px;
+            margin: 0 auto;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+        }
+
+        /* Hero */
+        .hero-container {
+            display: flex;
+            align-items: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+        }
+        .hero-left {
+            flex: 1;
+        }
+        .hero-left h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #FFFFFF, var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 40px;
+            padding: 0.8rem 1.8rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #0A0A1A;
+            border: none;
+        }
+        .hero-right {
+            flex: 1;
+            pointer-events: none;
+        }
+
+        /* About Visual Workstation */
+        .about-studio {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 48px;
+            border: 1px solid var(--glass-border);
+            padding: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: center;
+            align-items: center;
+        }
+        .workstation-item {
+            text-align: center;
+            flex: 1;
+            min-width: 120px;
+        }
+        .workstation-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1rem;
+            color: var(--accent);
+        }
+        .workstation-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Floating Holographic Control Panel */
+        .filter-panel {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+            padding: 1rem 2rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border-radius: 60px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .filter-btn {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0.6rem 1.5rem;
+            border-radius: 40px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .filter-btn i { width: 20px; height: 20px; }
+        .filter-btn.active, .filter-btn:hover {
+            background: var(--accent);
+            color: #0A0A1A;
+            box-shadow: 0 0 12px rgba(0,255,255,0.4);
+            transform: scale(1.02);
+        }
+
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+        }
+        .portfolio-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 28px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            transition: var(--transition);
+        }
+        .portfolio-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent);
+            box-shadow: 0 25px 35px -12px rgba(0,0,0,0.4);
+        }
+        .video-wrapper {
+            aspect-ratio: 16/9;
+            overflow: hidden;
+            position: relative;
+        }
+        .video-wrapper video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s;
+        }
+        .portfolio-card:hover video {
+            transform: scale(1.03);
+        }
+        .portfolio-info {
+            padding: 1.2rem;
+        }
+        .portfolio-info h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.3rem;
+        }
+
+        /* Pricing Cards */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+        }
+        .pricing-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 32px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s;
+            border: 1px solid var(--glass-border);
+            position: relative;
+            overflow: hidden;
+        }
+        .pricing-card .card-icon {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 1rem;
+        }
+        .pricing-card.normal .card-icon { color: #3B82F6; }
+        .pricing-card.good .card-icon { color: #00FFFF; }
+        .pricing-card.premium .card-icon { color: #C084FC; }
+.pricing-card.exclusive{
+border:2px solid #FFD700;
+box-shadow:0 0 25px rgba(255,215,0,.35);
+transform:scale(1.03);
+}
+.pricing-card.exclusive .card-icon{color:#FFD700;}
+        .price {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 1rem 0;
+        }
+        .feature-list {
+            list-style: none;
+            margin: 1rem 0;
+        }
+        .feature-list li {
+            margin: 0.4rem 0;
+            font-size: 0.85rem;
+        }
+
+        /* Contact Hub (2D UI) - Fixed Cards with Font Awesome */
+        .contact-hub {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        .contact-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 0.8rem;
+            padding: 2rem 1.5rem;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border-radius: 48px;
+            border: 1px solid var(--glass-border);
+            transition: var(--transition);
+            cursor: pointer;
+            flex: 1;
+            min-width: 220px;
+        }
+        .contact-icon {
+            font-size: 3rem;
+            color: var(--accent);
+            transition: transform 0.2s;
+            line-height: 1;
+        }
+        .contact-platform {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .contact-username {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            word-break: break-all;
+            margin-bottom: 0.5rem;
+        }
+        .contact-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 40px;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 80%;
+            margin-top: 0.5rem;
+        }
+        .contact-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent);
+            box-shadow: 0 20px 30px -10px rgba(0,0,0,0.4);
+        }
+        .contact-card:hover .contact-icon {
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 15px var(--accent));
+        }
+        .contact-btn:hover {
+            background: var(--accent);
+            color: #0A0A1A;
+            box-shadow: var(--accent-glow);
+        }
+
+        /* Custom Cursor & Trail */
+        .custom-cursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0, 255, 255, 0.15);
+            border: 2px solid var(--accent);
+            backdrop-filter: blur(4px);
+            pointer-events: none;
+            z-index: 10000;
+            transition: transform 0.1s ease, width 0.2s, height 0.2s, background 0.2s;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+        .custom-cursor.hover {
+            width: 80px;
+            height: 80px;
+            background: rgba(0, 255, 255, 0.25);
+        }
+        .cursor-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--accent);
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .custom-cursor.hover .cursor-text {
+            opacity: 1;
+        }
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        @media (max-width: 900px) {
+            .portfolio-grid, .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+            .hero-container { flex-direction: column; }
+            .nav-bar { gap: 0.5rem; padding: 0.4rem 1rem; }
+            .nav-btn span { display: none; }
+            .custom-cursor { display: none; }
+            * { cursor: auto; }
+        }
+        .toast-msg {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: #0A0A1A;
+            padding: 0.6rem 1.2rem;
+            border-radius: 60px;
+            font-weight: bold;
+            z-index: 200;
+            display: none;
+        }
+    
+.sticker-exclusive-banner{
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:2rem;
+padding:2rem;
+margin-bottom:3rem;
+border-radius:32px;
+border:2px solid #FFD700;
+background:linear-gradient(135deg,rgba(255,215,0,.15),rgba(255,215,0,.05));
+box-shadow:0 0 30px rgba(255,215,0,.25);
+}
+.sticker-exclusive-price{
+font-size:4rem;
+font-weight:800;
+color:#FFD700;
+}
+.sticker-exclusive-btn{
+background:#FFD700;
+color:#000;
+border:none;
+padding:1rem 2rem;
+border-radius:50px;
+font-weight:700;
+}
+@media(max-width:900px){
+.sticker-exclusive-banner{flex-direction:column;text-align:center;}
+}
+
+
+.coming-soon .video-wrapper{display:flex;align-items:center;justify-content:center;background:#111327;}
+.coming-icon{font-size:3rem;color:#00ffff;opacity:.7}
+</style>
+</head>
+<body>
+    <canvas id="bgCanvas"></canvas>
+    <canvas id="particle-canvas"></canvas>
+    <div class="custom-cursor" id="customCursor">
+        <div class="cursor-text" id="cursorText"></div>
+    </div>
+    <div class="ui-overlay">
+        <div class="nav-bar">
+            <button class="nav-btn" data-section="home"><i data-lucide="home"></i><span data-i18n="nav_home">HOME</span></button>
+            <button class="nav-btn" data-section="about"><i data-lucide="user"></i><span data-i18n="nav_about">ABOUT</span></button>
+            <button class="nav-btn" data-section="portfolio"><i data-lucide="folder-open"></i><span data-i18n="nav_portfolio">PORTFOLIO</span></button>
+            <button class="nav-btn" data-section="pricing"><i data-lucide="badge-dollar-sign"></i><span data-i18n="nav_pricing">PRICING</span></button>
+            <button class="nav-btn" data-section="contact"><i data-lucide="mail"></i><span data-i18n="nav_contact">CONTACT</span></button>
+            <div class="dropdown" id="currencyDropdownContainer">
+                <div class="selector" id="currencySelector"><i data-lucide="globe"></i> INR</div>
+                <div class="dropdown-content" id="currencyMenu"></div>
+            </div>
+            <div class="dropdown" id="langDropdownContainer">
+                <div class="selector" id="langSelector"><i data-lucide="languages"></i> EN</div>
+                <div class="dropdown-content" id="langMenu"></div>
+            </div>
+            <button id="themeToggle" class="selector"><i data-lucide="moon"></i> DARK</button>
+        </div>
+
+        <!-- HOME -->
+        <section id="home" class="section">
+            <div class="hero-container">
+                <div class="hero-left">
+                    <h1>GGZ EDITOR</h1>
+                    <div class="hero-sub" style="font-size:1.2rem; margin:1rem 0" data-i18n="hero_sub">Minecraft Cinematic Editor</div>
+                    <div class="btn-group" style="display:flex; gap:1rem">
+                        <button class="btn btn-primary" data-section="portfolio" data-i18n="hero_portfolio">Portfolio</button>
+                        <button class="btn" data-section="pricing" data-i18n="hero_pricing">Pricing</button>
+                        <button class="btn" data-section="contact" data-i18n="hero_contact">Contact</button>
+                    </div>
+                </div>
+                <div class="hero-right"></div>
+            </div>
+        </section>
+
+        <!-- ABOUT Visual Workstation -->
+        <section id="about" class="section">
+            <div class="about-studio">
+                <div class="workstation-item"><div class="workstation-icon"><i data-lucide="scissors"></i></div><div class="workstation-label" data-i18n="about_editing">Editing</div></div>
+                <div class="workstation-item"><div class="workstation-icon"><i data-lucide="zap"></i></div><div class="workstation-label" data-i18n="about_motion">Motion Design</div></div>
+                <div class="workstation-item"><div class="workstation-icon"><i data-lucide="move"></i></div><div class="workstation-label" data-i18n="about_transitions"></div></div>
+                <div class="workstation-item"><div class="workstation-icon"><i data-lucide="type"></i></div><div class="workstation-label" data-i18n="about_text">Text Animation</div></div>
+                <div class="workstation-item"><div class="workstation-icon"><i data-lucide="clapperboard"></i></div><div class="workstation-label" data-i18n="about_story">Storytelling</div></div>
+            </div>
+        </section>
+
+        <!-- PORTFOLIO -->
+        <section id="portfolio" class="section">
+            <div class="filter-panel" id="filterPanel"></div>
+            <div class="portfolio-grid" id="portfolioGrid"></div></div>
+<div class="portfolio-info"><h3>Coming Soon</h3><p>New edit arriving soon...</p></div>
+</div>
+
+        </section>
+
+        <!-- PRICING -->
+        <section id="pricing" class="section">
+            
+<div class="sticker-exclusive-banner">
+<div>
+<h2>👑 STICKER EXCLUSIVE</h2>
+<p>Custom sticker pack with premium finishing.</p>
+<ul class="feature-list">
+<li>✓ Custom Stickers</li>
+<li>✓ PNG Transparency</li>
+<li>✓ 1 Extra Day Delivery</li>
+<li>✓ Priority Quality Check</li>
+</ul>
+</div>
+<div>
+<div class="sticker-exclusive-price">₹750</div>
+<button class="sticker-exclusive-btn">Order Now</button>
+</div>
+</div>
+
+            <div class="pricing-grid" id="pricingGrid"></div>
+        </section>
+
+        <!-- CONTACT Hub (Fixed with Font Awesome Icons) -->
+        <section id="contact" class="section">
+            <div class="contact-hub">
+                <!-- Discord Card -->
+                <div class="contact-card" data-contact="discord" data-link="https://discord.com/users/1324256840355287122">
+                    <div class="contact-icon"><i class="fa-brands fa-discord"></i></div>
+                    <div class="contact-platform">Discord</div>
+                    <div class="contact-username">editor_ggz</div>
+                    <button class="contact-btn">Open Discord</button>
+                </div>
+                <!-- Instagram Card -->
+                <div class="contact-card" data-contact="instagram" data-link="https://www.instagram.com/ge_haris23/">
+                    <div class="contact-icon"><i class="fa-brands fa-instagram"></i></div>
+                    <div class="contact-platform">Instagram</div>
+                    <div class="contact-username">@ge_haris23</div>
+                    <button class="contact-btn">Open Instagram</button>
+                </div>
+                <!-- Email Card -->
+                <div class="contact-card" data-contact="email" data-link="mailto:nmahi8045@gmail.com">
+                    <div class="contact-icon"><i class="fa-solid fa-envelope"></i></div>
+                    <div class="contact-platform">Email</div>
+                    <div class="contact-username">nmahi8045@gmail.com</div>
+                    <button class="contact-btn">Send Email</button>
+                </div>
+            </div>
+        </section>
+    </div>
+    <div id="toastMsg" class="toast-msg"></div>
+
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.128.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/" } }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        
+        // --- 3D Scene Setup (unchanged layout) ---
+        const canvas = document.getElementById('bgCanvas');
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.toneMapping = THREE.ReinhardToneMapping;
+        renderer.toneMappingExposure = 1.2;
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x02021a);
+        scene.fog = new THREE.FogExp2(0x02021a, 0.003);
+
+        const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 300);
+        camera.position.set(0, 2.5, 12);
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.08;
+        controls.enableZoom = false;
+        controls.enablePan = false;
+        controls.target.set(0, 1.5, 0);
+        
+        // Bloom
+        const renderScene = new RenderPass(scene, camera);
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.6, 0.3, 0.2);
+        bloomPass.threshold = 0.1;
+        bloomPass.strength = 0.45;
+        const effectComposer = new EffectComposer(renderer);
+        effectComposer.addPass(renderScene);
+        effectComposer.addPass(bloomPass);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0x1a1a2e, 0.6);
+        scene.add(ambientLight);
+        const mainLight = new THREE.DirectionalLight(0xffeedd, 1.2);
+        mainLight.position.set(5, 12, 5);
+        mainLight.castShadow = true;
+        scene.add(mainLight);
+        const fillLight = new THREE.PointLight(0x4488ff, 0.5);
+        fillLight.position.set(-3, 2, 5);
+        scene.add(fillLight);
+        const rimLight = new THREE.PointLight(0xffaa66, 0.6);
+        rimLight.position.set(0, 2.5, -7);
+        scene.add(rimLight);
+        const backRim = new THREE.PointLight(0xff44cc, 0.4);
+        backRim.position.set(-2, 1.5, -6);
+        scene.add(backRim);
+
+        // Helper: island base (positions unchanged)
+        function createIslandBase(x, z, radius, colorTop = 0x6B8E23) {
+            const group = new THREE.Group();
+            const base = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius*1.1, 0.4, 24), new THREE.MeshStandardMaterial({ color: 0x5D3A1A, roughness: 0.8 }));
+            base.position.y = -0.2;
+            group.add(base);
+            const top = new THREE.Mesh(new THREE.CylinderGeometry(radius*0.9, radius, 0.2, 24), new THREE.MeshStandardMaterial({ color: colorTop, roughness: 0.9 }));
+            top.position.y = 0;
+            group.add(top);
+            group.position.set(x, 0, z);
+            return group;
+        }
+        function addBridge(p1, p2, color = 0x44aaff) {
+            const points = [new THREE.Vector3(p1.x, p1.y + 0.15, p1.z), new THREE.Vector3(p2.x, p2.y + 0.15, p2.z)];
+            const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+            const lineMat = new THREE.LineBasicMaterial({ color: color });
+            const line = new THREE.Line(lineGeo, lineMat);
+            scene.add(line);
+            const pGeo = new THREE.BufferGeometry();
+            const pos = [];
+            for (let i = 0; i <= 30; i++) {
+                const t = i / 30;
+                const x = p1.x * (1 - t) + p2.x * t;
+                const z = p1.z * (1 - t) + p2.z * t;
+                pos.push(x, p1.y + 0.2, z);
+            }
+            pGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(pos), 3));
+            const pMat = new THREE.PointsMaterial({ color: color, size: 0.08, transparent: true, blending: THREE.AdditiveBlending });
+            const particles = new THREE.Points(pGeo, pMat);
+            scene.add(particles);
+        }
+
+        // Island positions (LOCKED - do NOT change)
+        const homePos = { x: 0, z: 0 };
+        const aboutPos = { x: -5, z: 0 };
+        const portfolioPos = { x: 5, z: 0 };
+        const pricingPos = { x: 0, z: -6 };
+        const contactPos = { x: 0, z: 6 };
+        
+        // Create islands (same as before)
+        const homeIsland = createIslandBase(homePos.x, homePos.z, 3.2, 0x6B8E23);
+        const aboutIsland = createIslandBase(aboutPos.x, aboutPos.z, 1.8, 0x8B5A2B);
+        const portfolioIsland = createIslandBase(portfolioPos.x, portfolioPos.z, 2.0, 0x4A7A9C);
+        const pricingIsland = createIslandBase(pricingPos.x, pricingPos.z, 1.9, 0xAA8844);
+        const contactIsland = createIslandBase(contactPos.x, contactPos.z, 2.2, 0x00AACC);
+        scene.add(homeIsland, aboutIsland, portfolioIsland, pricingIsland, contactIsland);
+        
+        // Bridges (LOCKED)
+        addBridge(new THREE.Vector3(homePos.x, 0, homePos.z), new THREE.Vector3(aboutPos.x, 0, aboutPos.z));
+        addBridge(new THREE.Vector3(homePos.x, 0, homePos.z), new THREE.Vector3(portfolioPos.x, 0, portfolioPos.z));
+        addBridge(new THREE.Vector3(homePos.x, 0, homePos.z), new THREE.Vector3(pricingPos.x, 0, pricingPos.z));
+        addBridge(new THREE.Vector3(homePos.x, 0, homePos.z), new THREE.Vector3(contactPos.x, 0, contactPos.z), 0x00FFFF);
+
+        // --- HOME ISLAND (unchanged) ---
+        const coreGroup = new THREE.Group();
+        const coreMat = new THREE.MeshStandardMaterial({ color: 0x2FEFEF, emissive: 0x00AAAA, emissiveIntensity: 0.7 });
+        const coreSphere = new THREE.Mesh(new THREE.SphereGeometry(1.0, 48, 48), coreMat);
+        coreSphere.position.y = 0.6;
+        coreGroup.add(coreSphere);
+        const ring1 = new THREE.Mesh(new THREE.TorusGeometry(1.6, 0.1, 64, 120), new THREE.MeshStandardMaterial({ color: 0x00FFFF, emissive: 0x0088AA }));
+        ring1.rotation.x = Math.PI/2; ring1.position.y = 1.0;
+        coreGroup.add(ring1);
+        const topCrystal = new THREE.Mesh(new THREE.ConeGeometry(0.9, 2.0, 16), new THREE.MeshStandardMaterial({ color: 0x88AAFF, emissive: 0x2266AA }));
+        topCrystal.position.y = 2.2;
+        coreGroup.add(topCrystal);
+        const coreLight = new THREE.PointLight(0x00FFFF, 1.5, 20);
+        coreLight.position.set(0, 1.0, 0);
+        coreGroup.add(coreLight);
+        homeIsland.add(coreGroup);
+
+        // Orbiting objects (unchanged)
+        const orbitingObjects = [];
+        const objectTypes = [
+            { geom: new THREE.BoxGeometry(0.25, 0.25, 0.25), color: 0xFF44CC },
+            { geom: new THREE.CylinderGeometry(0.12, 0.12, 0.4, 6), color: 0x44FFAA },
+            { geom: new THREE.TorusGeometry(0.2, 0.04, 16, 32), color: 0x00FFFF },
+            { geom: new THREE.BoxGeometry(0.5, 0.05, 0.1), color: 0xFFAA44 },
+            { geom: new THREE.SphereGeometry(0.12, 6, 6), color: 0xFF66FF },
+            { geom: new THREE.BoxGeometry(0.2, 0.2, 0.2), color: 0x88AAFF }
+        ];
+        for (let i = 0; i < 150; i++) {
+            const type = objectTypes[Math.floor(Math.random() * objectTypes.length)];
+            const obj = new THREE.Mesh(type.geom, new THREE.MeshStandardMaterial({ color: type.color, emissive: 0x222222, emissiveIntensity: 0.3 }));
+            const radius = 2.2 + Math.random() * 1.5;
+            const angle = Math.random() * Math.PI * 2;
+            const yOffset = (Math.random() - 0.5) * 2.5;
+            obj.userData = { radius, angle, speed: 0.2 + Math.random() * 0.4, yOffset };
+            obj.position.set(Math.cos(angle) * radius, 0.6 + yOffset, Math.sin(angle) * radius);
+            coreGroup.add(obj);
+            orbitingObjects.push(obj);
+        }
+        
+        // --- OTHER ISLANDS (unchanged except Contact Island enhancements) ---
+        // About Island
+        const aboutGroup = new THREE.Group();
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x88aaff, emissive: 0x2266aa, emissiveIntensity: 0.3 });
+        const torso = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.9, 0.4), bodyMat);
+        torso.position.y = 0.4;
+        aboutGroup.add(torso);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 16), bodyMat);
+        head.position.y = 0.95;
+        aboutGroup.add(head);
+        const leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.7, 0.3), bodyMat);
+        leftArm.position.set(-0.55, 0.7, 0);
+        aboutGroup.add(leftArm);
+        const rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.7, 0.3), bodyMat);
+        rightArm.position.set(0.55, 0.7, 0);
+        aboutGroup.add(rightArm);
+        const cardCanvas = document.createElement('canvas');
+        cardCanvas.width = 256;
+        cardCanvas.height = 256;
+        const cardCtx = cardCanvas.getContext('2d');
+        cardCtx.fillStyle = '#0A0A1A';
+        cardCtx.fillRect(0, 0, 256, 256);
+        cardCtx.fillStyle = '#00FFFF';
+        cardCtx.font = 'bold 28px Inter';
+        cardCtx.fillText('GGZ', 30, 100);
+        cardCtx.font = '18px Inter';
+        cardCtx.fillStyle = '#A0A0C0';
+        cardCtx.fillText('Creator', 30, 150);
+        const cardTexture = new THREE.CanvasTexture(cardCanvas);
+        const cardPlane = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.2), new THREE.MeshStandardMaterial({ map: cardTexture, side: THREE.DoubleSide }));
+        cardPlane.position.set(0, -0.3, 0.7);
+        aboutGroup.add(cardPlane);
+        const toolMat = new THREE.MeshStandardMaterial({ color: 0xFFAA44 });
+        const scissorTool = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.1, 0.05), toolMat);
+        scissorTool.userData = { orbitRadius: 1.2, speed: 0.8, angle: 0 };
+        aboutGroup.add(scissorTool);
+        const keyframeTool = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.2, 4), new THREE.MeshStandardMaterial({ color: 0xFF44CC }));
+        keyframeTool.userData = { orbitRadius: 1.4, speed: 0.6, angle: Math.PI/2 };
+        aboutGroup.add(keyframeTool);
+        const playTool = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.3, 6), new THREE.MeshStandardMaterial({ color: 0x44FFAA }));
+        playTool.userData = { orbitRadius: 1.0, speed: 1.0, angle: Math.PI };
+        aboutGroup.add(playTool);
+        aboutGroup.position.set(aboutPos.x, 0.4, aboutPos.z);
+        scene.add(aboutGroup);
+        
+        // Portfolio Island
+        const portfolioGroup = new THREE.Group();
+        const aeMat = new THREE.MeshStandardMaterial({ color: 0x8800FF, emissive: 0x4400AA, emissiveIntensity: 0.4 });
+        const aeBlock = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), aeMat);
+        aeBlock.position.set(-1.4, 0.6, 0);
+        portfolioGroup.add(aeBlock);
+        const prMat = new THREE.MeshStandardMaterial({ color: 0xFF44CC, emissive: 0x882266, emissiveIntensity: 0.4 });
+        const prBlock = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), prMat);
+        prBlock.position.set(1.4, 0.6, 0);
+        portfolioGroup.add(prBlock);
+        const filmStrips = [];
+        for (let i = 0; i < 12; i++) {
+            const strip = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.05, 0.1), new THREE.MeshStandardMaterial({ color: 0xFFAA44 }));
+            const angle = (i / 12) * Math.PI * 2;
+            const radius = 1.9;
+            strip.position.set(Math.cos(angle) * radius, 0.3 + Math.sin(angle*2)*0.2, Math.sin(angle) * radius);
+            portfolioGroup.add(strip);
+            filmStrips.push(strip);
+        }
+        portfolioGroup.position.set(portfolioPos.x, 0.2, portfolioPos.z);
+        scene.add(portfolioGroup);
+        
+        // Pricing Island
+        const pricingGroup = new THREE.Group();
+        const dollarMat = new THREE.MeshStandardMaterial({ color: 0xFFD700, emissive: 0xAA8800, emissiveIntensity: 0.5 });
+        const dollarSign = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.12, 16, 32), dollarMat);
+        dollarSign.rotation.x = Math.PI/2;
+        dollarSign.position.y = 0.8;
+        pricingGroup.add(dollarSign);
+        const centerCoin = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.12, 24), dollarMat);
+        centerCoin.position.y = 0.3;
+        pricingGroup.add(centerCoin);
+        const coins = [];
+        for (let i = 0; i < 16; i++) {
+            const coin = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.06, 16), new THREE.MeshStandardMaterial({ color: 0xFFAA44 }));
+            const angle = (i / 16) * Math.PI * 2;
+            const radius = 1.4;
+            coin.position.set(Math.cos(angle) * radius, 0.25, Math.sin(angle) * radius);
+            coin.userData = { bounceSpeed: 0.5 + Math.random() };
+            pricingGroup.add(coin);
+            coins.push(coin);
+        }
+        pricingGroup.position.set(pricingPos.x, 0.2, pricingPos.z);
+        scene.add(pricingGroup);
+        
+        // ========== CONTACT ISLAND (Enhanced with monuments, same location) ==========
+        const contactGroup = new THREE.Group();
+        
+        // Signal ring (communication effect)
+        const commRingMat = new THREE.MeshStandardMaterial({ color: 0x00FFFF, emissive: 0x0088AA, emissiveIntensity: 0.6 });
+        const ringContact = new THREE.Mesh(new THREE.TorusGeometry(1.8, 0.08, 32, 80), commRingMat);
+        ringContact.rotation.x = Math.PI/2;
+        ringContact.position.y = 0.2;
+        contactGroup.add(ringContact);
+        
+        // Signal towers
+        const towerMat = new THREE.MeshStandardMaterial({ color: 0x44AAFF, emissive: 0x2266AA });
+        for (let i = 0; i < 4; i++) {
+            const angle = (i / 4) * Math.PI * 2;
+            const radius = 1.5;
+            const tower = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.3, 0.8, 6), towerMat);
+            tower.position.set(Math.cos(angle) * radius, 0.2, Math.sin(angle) * radius);
+            contactGroup.add(tower);
+            const topLight = new THREE.Mesh(new THREE.SphereGeometry(0.08, 6, 6), new THREE.MeshStandardMaterial({ color: 0xFF00FF, emissive: 0xFF00AA }));
+            topLight.position.set(Math.cos(angle) * radius, 0.6, Math.sin(angle) * radius);
+            contactGroup.add(topLight);
+        }
+        
+        // 1. Discord Monument
+        const discordMatMon = new THREE.MeshStandardMaterial({ color: 0x5865F2, emissive: 0x2C3EAA, emissiveIntensity: 0.4 });
+        const discordMon = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.0, 1.0), discordMatMon);
+        discordMon.position.set(-1.6, 0.5, -0.8);
+        contactGroup.add(discordMon);
+        const discIcon = new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.08, 16, 32), new THREE.MeshStandardMaterial({ color: 0xFFFFFF, emissive: 0x888888 }));
+        discIcon.position.set(-1.6, 0.5, -0.35);
+        contactGroup.add(discIcon);
+        
+        // 2. Instagram Monument (rounded square with lens)
+        const instaGroup = new THREE.Group();
+        const frameMat = new THREE.MeshStandardMaterial({ color: 0xE4405F, emissive: 0xAA2244, emissiveIntensity: 0.4 });
+        const frame = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.9, 0.1), frameMat);
+        instaGroup.add(frame);
+        const lensMat = new THREE.MeshStandardMaterial({ color: 0x88AAFF, emissive: 0x2266AA });
+        const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.05, 24), lensMat);
+        lens.position.z = 0.06;
+        instaGroup.add(lens);
+        const flash = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 8), new THREE.MeshStandardMaterial({ color: 0xFFFFFF }));
+        flash.position.set(0.3, 0.35, 0.06);
+        instaGroup.add(flash);
+        // gradient front texture
+        const gradientCanvas = document.createElement('canvas');
+        gradientCanvas.width = 512;
+        gradientCanvas.height = 512;
+        const gCtx = gradientCanvas.getContext('2d');
+        const grad = gCtx.createLinearGradient(0, 0, 512, 512);
+        grad.addColorStop(0, '#F56040');
+        grad.addColorStop(0.3, '#E1306C');
+        grad.addColorStop(0.6, '#C13584');
+        grad.addColorStop(1, '#833AB4');
+        gCtx.fillStyle = grad;
+        gCtx.fillRect(0, 0, 512, 512);
+        const gradientTexture = new THREE.CanvasTexture(gradientCanvas);
+        const frontMatInsta = new THREE.MeshStandardMaterial({ map: gradientTexture });
+        const frontPlane = new THREE.Mesh(new THREE.PlaneGeometry(0.86, 0.86), frontMatInsta);
+        frontPlane.position.z = 0.051;
+        instaGroup.add(frontPlane);
+        instaGroup.position.set(1.6, 0.5, -0.8);
+        contactGroup.add(instaGroup);
+        
+        // 3. Email Monument (envelope)
+        const emailMatMon = new THREE.MeshStandardMaterial({ color: 0x00CCFF, emissive: 0x0088AA });
+        const envelopeBase = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.6, 0.1), emailMatMon);
+        envelopeBase.position.set(-1.4, 0.4, 1.2);
+        contactGroup.add(envelopeBase);
+        const envelopeFlap = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.08, 4), emailMatMon);
+        envelopeFlap.position.set(-1.4, 0.44, 1.25);
+        contactGroup.add(envelopeFlap);
+        
+        // 4. Phone Monument
+        const phoneMat = new THREE.MeshStandardMaterial({ color: 0x44FFAA, emissive: 0x22AA66 });
+        const phoneBody = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.0, 0.15), phoneMat);
+        phoneBody.position.set(1.8, 0.5, 1.0);
+        contactGroup.add(phoneBody);
+        const phoneScreen = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.8, 0.05), new THREE.MeshStandardMaterial({ color: 0x88AAFF }));
+        phoneScreen.position.set(1.8, 0.5, 1.08);
+        contactGroup.add(phoneScreen);
+        
+        // 5. Message Bubble Monument
+        const msgMat = new THREE.MeshStandardMaterial({ color: 0xFF66CC, emissive: 0x882266 });
+        const msgBubble = new THREE.Mesh(new THREE.SphereGeometry(0.6, 24, 24), msgMat);
+        msgBubble.position.set(0, 0.7, 1.6);
+        contactGroup.add(msgBubble);
+        const msgDot = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), new THREE.MeshStandardMaterial({ color: 0xFFFFFF }));
+        msgDot.position.set(0, 0.95, 1.9);
+        contactGroup.add(msgDot);
+        
+        // Communication particles around the island
+        const contactParticles = new THREE.BufferGeometry();
+        const cpPos = [];
+        for (let i = 0; i < 1200; i++) {
+            cpPos.push((Math.random() - 0.5) * 5, Math.random() * 2.5 - 0.5, (Math.random() - 0.5) * 5);
+        }
+        contactParticles.setAttribute('position', new THREE.BufferAttribute(new Float32Array(cpPos), 3));
+        const cpMatObj = new THREE.PointsMaterial({ color: 0x88aaff, size: 0.06, transparent: true });
+        const cpSys = new THREE.Points(contactParticles, cpMatObj);
+        contactGroup.add(cpSys);
+        
+        contactGroup.position.set(contactPos.x, 0.2, contactPos.z);
+        scene.add(contactGroup);
+        
+        // Global particles
+        const globalParticlesGeo = new THREE.BufferGeometry();
+        const globalPos = [];
+        for (let i = 0; i < 4000; i++) {
+            globalPos.push((Math.random() - 0.5) * 50);
+            globalPos.push(Math.random() * 8 - 2);
+            globalPos.push((Math.random() - 0.5) * 50);
+        }
+        globalParticlesGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(globalPos), 3));
+        const globalParticleMat = new THREE.PointsMaterial({ color: 0x88aaff, size: 0.05, transparent: true });
+        const globalParticles = new THREE.Points(globalParticlesGeo, globalParticleMat);
+        scene.add(globalParticles);
+        
+        // ========== ANIMATION LOOP ==========
+        let time = 0;
+        function animate3D() {
+            requestAnimationFrame(animate3D);
+            time += 0.012;
+            ring1.rotation.z = time * 0.6;
+            coreLight.intensity = 1.2 + Math.sin(time * 3) * 0.4;
+            topCrystal.rotation.y = time * 0.2;
+            
+            orbitingObjects.forEach(obj => {
+                const data = obj.userData;
+                const angle = data.angle + time * data.speed;
+                const x = Math.cos(angle) * data.radius;
+                const z = Math.sin(angle) * data.radius;
+                obj.position.set(x, 0.6 + data.yOffset + Math.sin(time * 1.5) * 0.05, z);
+                obj.rotation.x += 0.02;
+                obj.rotation.y += 0.02;
+            });
+            
+            coins.forEach(coin => {
+                coin.position.y = 0.25 + Math.sin(time * coin.userData.bounceSpeed) * 0.04;
+            });
+            filmStrips.forEach((strip, idx) => {
+                strip.rotation.z = time * 0.4 + idx;
+            });
+            const tools = [scissorTool, keyframeTool, playTool];
+            tools.forEach(tool => {
+                const data = tool.userData;
+                const angle = data.angle + time * data.speed;
+                const x = Math.cos(angle) * data.orbitRadius;
+                const z = Math.sin(angle) * data.orbitRadius;
+                tool.position.set(x, 0.5, z);
+                tool.rotation.z = time;
+            });
+            // Contact island animations
+            ringContact.rotation.z = time * 0.3;
+            envelopeFlap.rotation.z = Math.sin(time * 2) * 0.2;
+            phoneBody.position.y = 0.5 + Math.sin(time * 1.2) * 0.03;
+            msgBubble.position.y = 0.7 + Math.sin(time * 1.4) * 0.03;
+            discordMon.position.y = 0.5 + Math.sin(time * 0.9) * 0.03;
+            instaGroup.position.y = 0.5 + Math.sin(time * 1.1) * 0.03;
+            
+            controls.update();
+            effectComposer.render();
+        }
+        animate3D();
+
+        // --- Scroll-Driven Camera (unchanged routes) ---
+        const sections = ['home', 'about', 'portfolio', 'pricing', 'contact'];
+        const sectionElements = sections.map(id => document.getElementById(id));
+        const islandTargets = {
+            home: { pos: new THREE.Vector3(0, 2.5, 12), target: new THREE.Vector3(0, 1.5, 0) },
+            about: { pos: new THREE.Vector3(-5, 2.2, 7), target: new THREE.Vector3(-5, 1.0, 0) },
+            portfolio: { pos: new THREE.Vector3(5, 2.2, 7), target: new THREE.Vector3(5, 1.0, 0) },
+            pricing: { pos: new THREE.Vector3(0, 2.5, -8), target: new THREE.Vector3(0, 1.0, -6) },
+            contact: { pos: new THREE.Vector3(0, 2.5, 9), target: new THREE.Vector3(0, 1.0, 6) }
+        };
+        let currentSection = 'home';
+        let isCameraMoving = false;
+        function updateCameraFromScroll() {
+            let active = 'home';
+            for (let i = 0; i < sectionElements.length; i++) {
+                const rect = sectionElements[i].getBoundingClientRect();
+                if (rect.top <= window.innerHeight/2 && rect.bottom >= window.innerHeight/2) {
+                    active = sections[i];
+                    break;
+                }
+            }
+            if (active !== currentSection && !isCameraMoving) {
+                currentSection = active;
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    const section = btn.getAttribute('data-section');
+                    if (section === currentSection) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                });
+                const target = islandTargets[currentSection];
+                if (target) {
+                    isCameraMoving = true;
+                    const startPos = camera.position.clone();
+                    const startTarget = controls.target.clone();
+                    const duration = 800;
+                    const startTime = performance.now();
+                    function step(now) {
+                        let t = Math.min(1, (now - startTime) / duration);
+                        t = 1 - Math.pow(1 - t, 3);
+                        camera.position.lerpVectors(startPos, target.pos, t);
+                        controls.target.lerpVectors(startTarget, target.target, t);
+                        controls.update();
+                        if (t < 1) requestAnimationFrame(step);
+                        else {
+                            camera.position.copy(target.pos);
+                            controls.target.copy(target.target);
+                            controls.update();
+                            isCameraMoving = false;
+                        }
+                    }
+                    requestAnimationFrame(step);
+                }
+            }
+        }
+        window.addEventListener('scroll', () => { if (!isCameraMoving) updateCameraFromScroll(); });
+        setTimeout(updateCameraFromScroll, 100);
+        document.querySelectorAll('.nav-btn, [data-section]').forEach(btn => btn.addEventListener('click', (e) => {
+            const section = btn.getAttribute('data-section');
+            if (section && sections.includes(section)) {
+                document.getElementById(section).scrollIntoView({ behavior: 'smooth' });
+            }
+        }));
+
+        // --- Theme (Dark/Light Mode) ---
+        function setTheme(dark) {
+            if (dark) {
+                document.body.classList.remove('light');
+                scene.background.setHex(0x02021a);
+                scene.fog.color.setHex(0x02021a);
+                ambientLight.intensity = 0.6;
+                mainLight.intensity = 1.2;
+                fillLight.color.setHex(0x4488ff);
+                rimLight.color.setHex(0xffaa66);
+                backRim.intensity = 0.4;
+                globalParticleMat.color.setHex(0x88aaff);
+            } else {
+                document.body.classList.add('light');
+                scene.background.setHex(0xE5E7F0);
+                scene.fog.color.setHex(0xE5E7F0);
+                ambientLight.intensity = 0.9;
+                mainLight.intensity = 1.5;
+                fillLight.color.setHex(0xffaa66);
+                rimLight.color.setHex(0xffcc88);
+                backRim.intensity = 0.2;
+                globalParticleMat.color.setHex(0x4466aa);
+            }
+            lucide.createIcons();
+        }
+        const themeBtn = document.getElementById('themeToggle');
+        let isDark = true;
+        themeBtn.addEventListener('click', () => { isDark = !isDark; setTheme(isDark); themeBtn.innerHTML = isDark ? '<i data-lucide="moon"></i> DARK' : '<i data-lucide="sun"></i> LIGHT'; });
+        setTheme(true);
+
+        // --- Dropdowns (unchanged) ---
+        function setupDropdown(containerId, menuId, selectorId, items, onSelect) {
+            const container = document.getElementById(containerId);
+            const menu = document.getElementById(menuId);
+            const selector = document.getElementById(selectorId);
+            selector.addEventListener('click', (e) => {
+                e.stopPropagation();
+                container.classList.toggle('show');
+            });
+            items.forEach(item => {
+                const a = document.createElement('a'); a.href='#'; a.textContent = item; a.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    onSelect(item);
+                    container.classList.remove('show');
+                });
+                menu.appendChild(a);
+            });
+            document.addEventListener('click', () => container.classList.remove('show'));
+        }
+        const currencies = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'AUD', 'CAD', 'SGD', 'JPY', 'CNY'];
+        const exchangeRates = { INR: 1, USD: 0.012, EUR: 0.011, GBP: 0.0095, AED: 0.044, AUD: 0.018, CAD: 0.016, SGD: 0.016, JPY: 1.8, CNY: 0.087 };
+        let currentCurrency = 'INR';
+        setupDropdown('currencyDropdownContainer', 'currencyMenu', 'currencySelector', currencies, (cur) => {
+            currentCurrency = cur;
+            document.getElementById('currencySelector').innerHTML = `<i data-lucide="globe"></i> ${cur}`;
+            renderPricing();
+            lucide.createIcons();
+        });
+        
+        // --- Language System (i18n) ---
+        const translations = {
+            en: { nav_home: "HOME", nav_about: "ABOUT", nav_portfolio: "PORTFOLIO", nav_pricing: "PRICING", nav_contact: "CONTACT", hero_sub: "Minecraft Cinematic Editor", hero_portfolio: "Portfolio", hero_pricing: "Pricing", hero_contact: "Contact", about_editing: "Editing", about_motion: "Motion Design", about_transitions: "", about_text: "Text Animation", about_story: "Storytelling", pricing_select: "Select" },
+            hi: { nav_home: "होम", nav_about: "परिचय", nav_portfolio: "पोर्टफोलियो", nav_pricing: "मूल्य", nav_contact: "संपर्क", hero_sub: "माइनक्राफ्ट सिनेमैटिक एडिटर", hero_portfolio: "पोर्टफोलियो", hero_pricing: "मूल्य", hero_contact: "संपर्क", about_editing: "संपादन", about_motion: "मोशन डिजाइन", about_transitions: "ट्रांज़िशन", about_text: "टेक्स्ट एनिमेशन", about_story: "कहानी सुनाना", pricing_select: "चुनें" }
+        };
+        let currentLang = 'en';
+        function updateLanguage(lang) {
+            currentLang = lang;
+            const t = translations[lang] || translations.en;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.textContent = t[key];
+            });
+            document.querySelectorAll('.select-plan').forEach(btn => btn.textContent = t.pricing_select || "Select");
+            lucide.createIcons();
+        }
+        const langList = ['en', 'hi', 'es', 'fr', 'de', 'pt', 'ru', 'ja', 'zh', 'ar'];
+        setupDropdown('langDropdownContainer', 'langMenu', 'langSelector', langList, (lang) => {
+            document.getElementById('langSelector').innerHTML = `<i data-lucide="languages"></i> ${lang.toUpperCase()}`;
+            updateLanguage(lang);
+        });
+        updateLanguage('en');
+
+        // --- Portfolio Data and UI (unchanged) ---
+        const portfolioData = {
+animation:[
+{title:"Sample 1",desc:"Minecraft Cinematic",video:"sample 1.mp4"},
+{title:"AI Sample",desc:"Minecraft Cinematic",video:"ai sample.mp4"},
+{title:"Transition",desc:"Minecraft Cinematic",video:"TRANSITION.mp4"}
+]};
+const categories=[{id:"animation",name:"Cinematic Animation",icon:"clapperboard"}];
+        const filterPanel = document.getElementById('filterPanel');
+        let activeCategory = 'animation';
+        categories.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.className = 'filter-btn';
+            btn.innerHTML = `<i data-lucide="${cat.icon}"></i> ${cat.name}`;
+            btn.dataset.cat = cat.id;
+            if (cat.id === activeCategory) btn.classList.add('active');
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeCategory = cat.id;
+                renderPortfolio();
+            });
+            filterPanel.appendChild(btn);
+        });
+        // 3D tilt on filter panel
+        document.addEventListener('mousemove', (e) => {
+            const rect = filterPanel.getBoundingClientRect();
+            if (rect.width === 0) return;
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const deltaX = (e.clientX - centerX) / (rect.width / 2);
+            const deltaY = (e.clientY - centerY) / (rect.height / 2);
+            const maxTilt = 6;
+            const tiltX = deltaY * maxTilt;
+            const tiltY = deltaX * maxTilt;
+            filterPanel.style.transform = `perspective(800px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) translateY(${Math.abs(deltaY) * 3}px)`;
+        });
+        const portfolioGrid = document.getElementById('portfolioGrid');
+        function renderPortfolio() {
+            const items = portfolioData[activeCategory];
+            portfolioGrid.innerHTML = '';
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'portfolio-card';
+                if(activeCategory==='stickers'){
+                card.innerHTML = `
+                <div class="video-wrapper" style="display:flex;align-items:center;justify-content:center;background:#05051a;">
+                    <img src="${item.image}" style="width:100%;height:100%;object-fit:contain;padding:8px;">
+                </div>
+                <div class="portfolio-info">
+                    <h3>${item.title}</h3>
+                    <p>${item.desc}</p>
+                </div>`;
+            }else{
+                card.innerHTML = `
+                    <div class="video-wrapper">
+                        <video autoplay loop muted playsinline>
+                            <source src="${item.video}" type="video/mp4">
+                        </video>
+                    </div>
+                    <div class="portfolio-info">
+                        <h3>${item.title}</h3>
+                        <p>${item.desc}</p>
+                    </div>
+                `;
+            }
+                portfolioGrid.appendChild(card);
+            });
+            for(let i=0;i<3;i++){
+                const c=document.createElement('div');
+                c.className='portfolio-card coming-soon';
+                c.innerHTML=`
+                <div class="video-wrapper" style="display:flex;align-items:center;justify-content:center;background:#111327;">
+                  <div class="coming-icon">+</div>
+                </div>
+                <div class="portfolio-info">
+                  <h3>Coming Soon</h3>
+                  <p>New edit arriving soon...</p>
+                </div>`;
+                portfolioGrid.appendChild(c);
+            }
+        }
+        renderPortfolio();
+
+        // --- Pricing Cards (unchanged) ---
+        const pricingCards = [
+            { name: 'NORMAL', price: 500, desc: 'Quick clean editing for short projects.', icon: 'scissors', color: 'normal', features: ['Pro editing', '1 revision'] },
+            { name: 'GOOD', price: 1500, desc: 'Motion graphics, transitions, text animation and enhanced editing.', icon: 'zap', color: 'good', features: ['Motion graphics', '2 revisions'] },
+            { name: 'PREMIUM', price: 3000, desc: 'Complete cinematic editing with advanced effects and premium presentation.', icon: 'crown', color: 'premium', features: ['Full VFX', 'Unlimited revisions'] }
+        ];
+        const pricingGridEl = document.getElementById('pricingGrid');
+        function renderPricing() {
+            pricingGridEl.innerHTML = '';
+            pricingCards.forEach(p => {
+                const converted = (p.price * exchangeRates[currentCurrency]).toFixed(0);
+                const symbol = currentCurrency === 'INR' ? '₹' : currentCurrency === 'USD' ? '$' : currentCurrency === 'EUR' ? '€' : currentCurrency === 'GBP' ? '£' : currentCurrency;
+                const card = document.createElement('div');
+                card.className = `pricing-card ${p.color}`;
+                card.innerHTML = `
+                    <div class="card-icon"><i data-lucide="${p.icon}"></i></div>
+                    <h3>${p.name}</h3>
+                    <div class="price">${symbol}${converted}</div>
+                    <div class="pricing-desc">${p.desc}</div>
+                    <ul class="feature-list">${p.features.map(f => `<li>✓ ${f}</li>`).join('')}</ul>
+                    <button class="btn select-plan" data-plan="${p.name}" data-i18n="pricing_select">Select</button>
+                `;
+                pricingGridEl.appendChild(card);
+            });
+            lucide.createIcons();
+            document.querySelectorAll('.select-plan').forEach(btn => btn.addEventListener('click', () => {
+                document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
+                showToast(`Selected ${btn.getAttribute('data-plan')} plan.`);
+            }));
+            if (translations[currentLang]) {
+                document.querySelectorAll('.select-plan').forEach(btn => btn.textContent = translations[currentLang].pricing_select);
+            }
+        }
+        renderPricing();
+
+        // --- Contact Cards (Font Awesome already rendered, click handlers) ---
+        const contactCards = document.querySelectorAll('.contact-card');
+        const toastDiv = document.getElementById('toastMsg');
+        function showToast(msg) {
+            toastDiv.textContent = msg;
+            toastDiv.style.display = 'block';
+            setTimeout(() => toastDiv.style.display = 'none', 2000);
+        }
+        contactCards.forEach(card => {
+            const btn = card.querySelector('.contact-btn');
+            const openLink = () => {
+                const link = card.getAttribute('data-link');
+                if (link) window.open(link, '_blank');
+            };
+            card.addEventListener('click', openLink);
+            if (btn) btn.addEventListener('click', (e) => { e.stopPropagation(); openLink(); });
+        });
+
+        // --- Custom Cursor & Particle Trail ---
+        const cursor = document.getElementById('customCursor');
+        const cursorTextElem = document.getElementById('cursorText');
+        const particleCtx = document.getElementById('particle-canvas').getContext('2d');
+        let particleTrail = [];
+        let mouseX = 0, mouseY = 0;
+        class TrailParticle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 4 + 2;
+                this.alpha = 0.8;
+                this.decay = 0.02 + Math.random() * 0.02;
+            }
+            update() {
+                this.alpha -= this.decay;
+                return this.alpha > 0;
+            }
+            draw(ctx) {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(0, 255, 255, ${this.alpha * 0.6})`;
+                ctx.fill();
+            }
+        }
+        function updateTrail() {
+            requestAnimationFrame(updateTrail);
+            particleCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+            for (let i = particleTrail.length - 1; i >= 0; i--) {
+                if (!particleTrail[i].update()) particleTrail.splice(i, 1);
+                else particleTrail[i].draw(particleCtx);
+            }
+        }
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            cursor.style.transform = `translate(${mouseX}px, ${mouseY}px)`;
+            for (let i = 0; i < 8; i++) {
+                particleTrail.push(new TrailParticle(mouseX, mouseY));
+            }
+        });
+        
+        // Hover for 2D UI elements
+        const hoverTargets = [
+            { selector: '.portfolio-card', text: 'VIEW' },
+            { selector: '.video-wrapper', text: 'PLAY' },
+            { selector: '.pricing-card', text: 'SELECT' },
+            { selector: '.contact-card', text: 'MESSAGE' },
+            { selector: '.filter-btn', text: 'VIEW' },
+            { selector: '.btn', text: 'CLICK' },
+            { selector: '.nav-btn', text: 'NAV' }
+        ];
+        hoverTargets.forEach(target => {
+            document.querySelectorAll(target.selector).forEach(el => {
+                el.addEventListener('mouseenter', () => {
+                    cursor.classList.add('hover');
+                    cursorTextElem.textContent = target.text;
+                });
+                el.addEventListener('mouseleave', () => {
+                    cursor.classList.remove('hover');
+                });
+            });
+        });
+        
+        // 3D objects hover for Contact Island
+        const contactMonuments = [discordMon, instaGroup, envelopeBase, phoneBody, msgBubble];
+        contactMonuments.forEach(mon => { if(mon) mon.userData = { interactable: true }; });
+        const raycaster3D = new THREE.Raycaster();
+        const mouse3D = new THREE.Vector2();
+        let currentHovered3D = null;
+        window.addEventListener('mousemove', (event) => {
+            mouse3D.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
+            mouse3D.y = -(event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+            raycaster3D.setFromCamera(mouse3D, camera);
+            const intersects = raycaster3D.intersectObjects(contactMonuments, true);
+            if (intersects.length > 0) {
+                let hit = intersects[0].object;
+                while (hit && !contactMonuments.includes(hit)) hit = hit.parent;
+                if (hit && currentHovered3D !== hit) {
+                    if (currentHovered3D) currentHovered3D.scale.set(1,1,1);
+                    currentHovered3D = hit;
+                    cursor.classList.add('hover');
+                    cursorTextElem.textContent = 'VIEW';
+                    hit.scale.set(1.05, 1.05, 1.05);
+                    for (let i = 0; i < 20; i++) particleTrail.push(new TrailParticle(event.clientX, event.clientY));
+                }
+            } else if (currentHovered3D) {
+                currentHovered3D.scale.set(1,1,1);
+                currentHovered3D = null;
+                cursor.classList.remove('hover');
+            }
+        });
+        
+        function resizeParticleCanvas() {
+            const canvasP = document.getElementById('particle-canvas');
+            canvasP.width = window.innerWidth;
+            canvasP.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeParticleCanvas);
+        resizeParticleCanvas();
+        updateTrail();
+        if ('ontouchstart' in window) cursor.style.display = 'none';
+        
+        lucide.createIcons();
+        console.log("Contact island enhanced, Font Awesome icons added for Discord and Instagram, email icon fixed.");
+    </script>
+</body>
+</html>
