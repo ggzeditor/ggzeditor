@@ -1252,7 +1252,13 @@ const categories=[{id:"animation",name:"Cinematic Animation",icon:"clapperboard"
                 card.innerHTML = `
                     <div class="video-wrapper">
                        <div class="video-wrapper">
-    <video autoplay loop muted playsinline class="portfolio-video">
+   <video
+    autoplay
+    loop
+    muted
+    playsinline
+    preload="metadata"
+> class="portfolio-video">
         <source src="${item.video}" type="video/mp4">
     </video>
 
