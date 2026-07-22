@@ -1236,9 +1236,15 @@ const categories=[{id:"animation",name:"Cinematic Animation",icon:"clapperboard"
             }else{
                 card.innerHTML = `
                     <div class="video-wrapper">
-                        <video autoplay loop muted playsinline>
-                            <source src="${item.video}" type="video/mp4">
-                        </video>
+                       <div class="video-wrapper">
+    <video autoplay loop muted playsinline class="portfolio-video">
+        <source src="${item.video}" type="video/mp4">
+    </video>
+
+    <button class="sound-btn">
+        🔇
+    </button>
+</div>
                     </div>
                     <div class="portfolio-info">
                         <h3>${item.title}</h3>
