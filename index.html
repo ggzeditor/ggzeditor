@@ -1201,7 +1201,22 @@ const categories=[{id:"animation",name:"Cinematic Animation",icon:"clapperboard"
                 btn.classList.add('active');
                 activeCategory = cat.id;
                 renderPortfolio();
-            });
+                document.addEventListener("click", (e) => {
+    if (!e.target.classList.contains("sound-btn")) return;
+
+    const video = e.target.parentElement.querySelector("video");
+
+    if (video.muted) {
+        video.muted = false;
+        video.volume = 1;
+        e.target.textContent = "🔊";
+    } else {
+        video.muted = true;
+        e.target.textContent = "🔇";
+    }
+});
+                
+        
             filterPanel.appendChild(btn);
         });
         // 3D tilt on filter panel
